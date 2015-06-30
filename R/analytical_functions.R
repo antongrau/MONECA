@@ -233,9 +233,8 @@ anton <- function(mx=mx, segment.levels=3, cut.off=1, mode="symmetric", delete.u
 #' @return a matrix of relative risks
 #' @export
 
+weight.matrix <- function(mx, cut.off = 1, symmetric = TRUE, diagonal = NULL, small.cell.reduction = 0){
 
-weight.matrix <- function(mx, cut.off=1, symmetric=TRUE, diagonal=NULL, small.cell.reduction=0){
-  
   l               <- nrow(mx)
   o.r.s           <- mx[-l, l]
   o.c.s           <- mx[l, -l]
@@ -257,7 +256,6 @@ weight.matrix <- function(mx, cut.off=1, symmetric=TRUE, diagonal=NULL, small.ce
   if(is.null(diagonal)) diag(mx.1i)     <- NA
   
   return(mx.1i)  
-  
 }
 
 

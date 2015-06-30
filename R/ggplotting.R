@@ -417,6 +417,55 @@ vertex.coord <- function(graph, layout=layout.fruchterman.reingold(graph)){
   layout
 }
 
+#' Ego plots
+#'
+#' Plots of the connections and movements from a single node
+#' @param segmenter
+#' @param mxa.b
+#' @param id
+#' @param lay
+#' @param edge.color
+#' @param edge.size
+#' @param border.padding
+#' @param title.line
+#' @param ...
+#' @export
+
+ego.plot <- function(segmenter, mxa.b, id = 1, lay = layout.matrix(segmenter),
+                     edge.color = "black",
+                     edge.size = 0.8,
+                     border.padding = 1,
+                     title.line = TRUE,
+                     ...
+                     
+                     
+                     
+){
+  
+  wm          <- weight.matrix(mxa.b, cut.off = 0, small.cell.reduction = 5, symmetric = FALSE)
+  freq.mat    <- mxa.b[-nrow(mxa.b), -nrow(mxa.b)]
+  wm          <- segment.edges(segmenter, cut.off = 0.95, segment.reduction = 1, small.cell.reduction = 5)
+  
+  MR        <- wm[id,]
+  MC        <- wm[,id]
+  M         <- freq.mat[id, ] # Den her kender vi ikke retningen på - måske skal række og kolonne lægges sammen og dividers med 2, så er det alle der udveksler...
+  if(nrow(M) > 1) M <- colSums(M)
+  nul       <- as.factor(M == 0)
+  M[id]     <- NA
+  EM        <- matrix(0 , nrow = nrow(wm), ncol = ncol(wm))
+  EM[,id]   <- MC
+  EM[id,]   <- MR
+  EM[EM <= 0.99] <- 0
+  dimnames(EM) <- dimnames(freq.mat)
+  
+  p.ego     <- gg.jonas(segmenter, layout = lay, edges = EM, vertex.fill = M, vertex.size = M, edge.size = edge.size, border.padding = 1, show.text = TRUE, border.text.size = 3, edge.color = edge.color, vertex.shape = nul)
+  p.ego     <- p.ego + scale_fill_continuous(high = "navyblue", low = "white", na.value = "purple", guide = "none") + scale_size_continuous(range = c(3, 10), na.value = 5) + scale_shape_manual(values = c(21, 4), guide = "none")
+  p.ego     <- p.ego + guides(size = guide_legend(override.aes = list(shape = 21)))
+  if(identical(title.line, TRUE))  p.ego  <- p.ego + annotate("segment", x = Inf, xend = -Inf, y = Inf, yend = Inf, color = "black", lwd = 1)
+  p.ego + ggtitle(rownames(wm)[id]) 
+}
+
+
 
 # Eksempler
 # 
