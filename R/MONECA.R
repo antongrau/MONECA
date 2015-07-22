@@ -6,4 +6,7 @@
 #' @import ggplot2
 #' @import igraph
 #' @import grid
+#' @import RColorBrewer
+#' @import scales
+#' @import soc.elite
 NULL

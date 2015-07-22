@@ -17,6 +17,7 @@ gg.jonas(segmenter, niveau = seq(segmenter$segment.list),
   border.text.color = "black", border.text.vjust = -0.2,
   border.text.hjust = 1, midpoints = TRUE, midpoint.arrow = arrow(angle =
   20, length = unit(0.33, "cm"), ends = "last", type = "closed"),
+  edge.text = FALSE, edge.text.size = 3, edge.text.alpha = 0.9,
   legend = "side", ...)
 }
 \arguments{
@@ -85,6 +86,12 @@ gg.jonas(segmenter, niveau = seq(segmenter$segment.list),
 \item{midpoints}{}
 
 \item{midpoint.arrow}{}
+
+\item{edge.text}{}
+
+\item{edge.text.size}{}
+
+\item{edge.text.alpha}{}
 
 \item{legend}{}
 }

@@ -5,8 +5,9 @@
 \title{Ego plots}
 \usage{
 ego.plot(segmenter, mxa.b, id = 1, lay = layout.matrix(segmenter),
-  edge.color = "black", edge.size = 0.8, border.padding = 1,
-  title.line = TRUE, ...)
+  edge.size = 0.8, border.padding = 1, title.line = TRUE,
+  vertex.size = "totals", small.cell.reduction = 5,
+  edge.weight = "discrete", color.scheme = "RdPu", ...)
 }
 \arguments{
 \item{segmenter}{}
@@ -17,17 +18,25 @@ ego.plot(segmenter, mxa.b, id = 1, lay = layout.matrix(segmenter),
 
 \item{lay}{}
 
-\item{edge.color}{}
-
 \item{edge.size}{}
 
 \item{border.padding}{}
 
 \item{title.line}{}
 
+\item{vertex.size}{if "totals" the size of the vertices is derived from the totals in mxa.b. If any other value it is the row.value for id.}
+
+\item{small.cell.reduction}{vertices with movements below this cutpoint are given a different shape.}
+
 \item{...}{}
+
+\item{edge.color}{}
 }
 \description{
 Plots of the connections and movements from a single node
+}
+\examples{
+data(occupations)
+ego.plot(mob.seg, mob.mat, id = 2)
 }
 

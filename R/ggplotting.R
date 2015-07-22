@@ -82,6 +82,9 @@
 #' @param border.text.hjust
 #' @param midpoints
 #' @param midpoint.arrow
+#' @param edge.text
+#' @param edge.text.size
+#' @param edge.text.alpha
 #' @param legend
 #' @export
 gg.jonas               <- function(segmenter,
@@ -122,7 +125,11 @@ gg.jonas               <- function(segmenter,
                                    border.text.hjust  = 1,
                                    
                                    midpoints          = TRUE,
-                                   midpoint.arrow      = arrow(angle = 20, length = unit(0.33, "cm"), ends = "last", type = "closed"),
+                                   midpoint.arrow     = arrow(angle = 20, length = unit(0.33, "cm"), ends = "last", type = "closed"),
+                                   
+                                   edge.text          = FALSE,
+                                   edge.text.size     = 3,
+                                   edge.text.alpha    = 0.9,
                                                                       
                                    legend             = "side",
                                    ...
@@ -185,8 +192,11 @@ p                      <- graph.plot(gra.edges, layout=layout,
                           vertex.size = vertex.size, vertex.alpha = vertex.alpha,
                           edges = show.edges, edge.color = edge.color, edge.alpha = edge.alpha,
                           edge.size = edge.size, edge.line = edge.line, edge.order = FALSE,
-                          text = show.text, text.size = text.size, text.colour = text.color,
-                          text.alpha = text.alpha, legend = legend, text.vjust = text.vjust, midpoints = midpoints, midpoint.arrow = midpoint.arrow)
+                          text = show.text, text.size = text.size, text.color = text.color,
+                          text.alpha = text.alpha, legend = legend, text.vjust = text.vjust,
+                          midpoints = midpoints, midpoint.arrow = midpoint.arrow,
+                          edge.text = edge.text, edge.text.size = edge.text.size, edge.text.alpha = edge.text.alpha
+                          )
 
 circleFun <- function(center = c(0, 0), diameter = 1, npoints = 100){
   r = diameter / 2
@@ -257,120 +267,120 @@ p + scale_modifications
 
 ##################################################
 ###  Graph plot
-graph.plot <- function(graph, layout = layout.fruchterman.reingold(graph),
-                       vertex.color = "black", vertex.fill = "grey60", vertex.shape = 21, vertex.size = 3, vertex.alpha = 1,
-                       edges = TRUE, edge.color = "black", edge.alpha = 0.2, edge.size = 1, edge.line = "solid", edge.order = FALSE,
-                       text = FALSE, text.size = 3, text.colour = "black", text.alpha = 1, legend = "side", text.vjust = 1.5, midpoints = FALSE,
-                       midpoint.arrow = arrow(angle = 20, length = unit(0.33, "cm"), ends = "last", type = "closed")){
-  
-  
-  
-  vertex.coords           <- as.data.frame(vertex.coord(graph, layout))
-  
-  vertex.l                <- list(color=vertex.color, fill=vertex.fill, shape=vertex.shape, size=vertex.size, alpha=vertex.alpha)
-  v.i                     <- unlist(lapply(vertex.l, length)) == 1
-  vertex.attributes       <- vertex.l[v.i]
-  vertex.aes              <- vertex.l[v.i==FALSE]
-  vertex.aes$x            <- vertex.coords$x
-  vertex.aes$y            <- vertex.coords$y
-  
-  
-  if(identical(edges, TRUE)){
-    
-    edge.coords             <- edge.coord(graph, layout)
-    edge.l                  <- list(color=edge.color, alpha=edge.alpha, size=edge.size, linetype=edge.line)
-    e.i                     <- unlist(lapply(edge.l, length)) == 1
-    edge.attributes         <- edge.l[e.i]
-    edge.attributes$lineend <- "butt"
-    edge.aes                <- edge.l[e.i==FALSE]
-    edge.aes$x              <- edge.coords$start.x
-    edge.aes$y              <- edge.coords$start.y
-    edge.aes$xend           <- edge.coords$slut.x
-    edge.aes$yend           <- edge.coords$slut.y
-    
-    if(identical(edge.order, FALSE) == FALSE){
-      edge.aes              <- as.list(as.data.frame(edge.aes)[order(edge.order),])
-    } 
-  }
-  
-  if(identical(midpoints, TRUE)){
-    midpoint.attributes         <- edge.attributes
-    midpoint.attributes$arrow   <- midpoint.arrow 
-    midpoint.aes                <- edge.aes
-    midpoint.aes$x              <- (edge.coords$start.x + edge.coords$slut.x) / 2
-    midpoint.aes$y              <- (edge.coords$start.y + edge.coords$slut.y) / 2
-    
-#     ax                          <- edge.coords$slut.x - midpoint.aes$x
-#     ay                          <- edge.coords$slut.y - midpoint.aes$y
-#     crazy                       <- (edge.coords$slut.y / 10000) * 0.001
-#     els                         <- edge.coords$slut.y < midpoint.aes$y
-
-# Her finder bevæger vi os 1/l hen af vectoren imod slutpunktet. x1 kan så være midpunktet.
-# l = sqrt((x2 - x1)^2 + (y2 -y1)^2)
-# x3 = x1 + (1/l) * (x2 - x1)
-# y3 = y1 + (1/l) * (y2 - y1)
-
-    L                            <- sqrt(((edge.coords$slut.x - midpoint.aes$x)^2) + ((edge.coords$slut.y - midpoint.aes$y)^2))
-    midpoint.aes$xend            <- midpoint.aes$x + (1/L) * (edge.coords$slut.x - midpoint.aes$x)
-    midpoint.aes$yend            <- midpoint.aes$y + (1/L) * (edge.coords$slut.y - midpoint.aes$y)
-    #midpoint.aes$xend           <- midpoint.aes$x + ((ax / ay) * crazy)
-    #midpoint.aes$yend           <- midpoint.aes$y + crazy
-#    midpoint.aes$yend[els]      <- midpoint.aes$y[els] - crazy
-    midpoint.aes$group          <- paste(midpoint.aes$x, midpoint.aes$y)
-    
-    }
-  
-  text.l                  <- list(size=text.size, color=text.colour, alpha=text.alpha, vjust=text.vjust, lineheight=1)
-  t.i                     <- unlist(lapply(text.l, length)) == 1
-  text.attributes         <- text.l[t.i]
-  text.aes                <- text.l[t.i==FALSE]
-  text.aes$x              <- vertex.coords$x
-  text.aes$y              <- vertex.coords$y
-  text.aes$label          <- rownames(vertex.coords)
-  
-  # Plot edges
-  p <- ggplot()
-  
-  if(identical(edges, TRUE)){
-    edge.attributes$mapping     <- do.call("aes", edge.aes)
-    p <- p + do.call("geom_segment", edge.attributes, quote=TRUE)
-  }
-  
-  # Plot midpoints
-  
-  if(identical(midpoints, TRUE)){
-    midpoint.attributes$mapping     <- do.call("aes", midpoint.aes)
-    p <- p + do.call("geom_segment", midpoint.attributes, quote=TRUE)
-  }
-  
-  # Plot vertices
-  vertex.attributes$mapping     <- do.call("aes", vertex.aes)
-  p <- p + do.call("geom_point", vertex.attributes, quote=TRUE)
-  
-  # Plot text
-  if(text==TRUE){
-    text.attributes$mapping     <- do.call("aes", text.aes)
-    p <- p + do.call("geom_text", text.attributes, quote=TRUE)
-  }
-  
-  # Formatting
-  p <- p + theme_bw()
-  p <- p + labs(alpha="Alpha", shape="Shape", color="Color", linetype="Linetype", size="Size", fill="Fill")
-  
-  if(legend == "bottom")  p <- p + theme(legend.position = "bottom", legend.direction = "horizontal", legend.box = "horizontal")
-  if(legend == "none")    p <- p + theme(legend.position = "none")
-  
-  p + theme(axis.line=element_blank(),axis.text.x=element_blank(),
-            axis.text.y=element_blank(),axis.ticks=element_blank(),
-            axis.title.x=element_blank(),
-            axis.title.y=element_blank(),
-            panel.background=element_blank(),panel.border=element_blank(),panel.grid.major=element_blank(),
-            panel.grid.minor=element_blank(),plot.background=element_blank())
-  
-  
-  
-}
-
+# graph.plot <- function(graph, layout = layout.fruchterman.reingold(graph),
+#                        vertex.color = "black", vertex.fill = "grey60", vertex.shape = 21, vertex.size = 3, vertex.alpha = 1,
+#                        edges = TRUE, edge.color = "black", edge.alpha = 0.2, edge.size = 1, edge.line = "solid", edge.order = FALSE,
+#                        text = FALSE, text.size = 3, text.colour = "black", text.alpha = 1, legend = "side", text.vjust = 1.5, midpoints = FALSE,
+#                        midpoint.arrow = arrow(angle = 20, length = unit(0.33, "cm"), ends = "last", type = "closed")){
+#   
+#   
+#   
+#   vertex.coords           <- as.data.frame(vertex.coord(graph, layout))
+#   
+#   vertex.l                <- list(color=vertex.color, fill=vertex.fill, shape=vertex.shape, size=vertex.size, alpha=vertex.alpha)
+#   v.i                     <- unlist(lapply(vertex.l, length)) == 1
+#   vertex.attributes       <- vertex.l[v.i]
+#   vertex.aes              <- vertex.l[v.i==FALSE]
+#   vertex.aes$x            <- vertex.coords$x
+#   vertex.aes$y            <- vertex.coords$y
+#   
+#   
+#   if(identical(edges, TRUE)){
+#     
+#     edge.coords             <- edge.coord(graph, layout)
+#     edge.l                  <- list(color=edge.color, alpha=edge.alpha, size=edge.size, linetype=edge.line)
+#     e.i                     <- unlist(lapply(edge.l, length)) == 1
+#     edge.attributes         <- edge.l[e.i]
+#     edge.attributes$lineend <- "butt"
+#     edge.aes                <- edge.l[e.i==FALSE]
+#     edge.aes$x              <- edge.coords$start.x
+#     edge.aes$y              <- edge.coords$start.y
+#     edge.aes$xend           <- edge.coords$slut.x
+#     edge.aes$yend           <- edge.coords$slut.y
+#     
+#     if(identical(edge.order, FALSE) == FALSE){
+#       edge.aes              <- as.list(as.data.frame(edge.aes)[order(edge.order),])
+#     } 
+#   }
+#   
+#   if(identical(midpoints, TRUE)){
+#     midpoint.attributes         <- edge.attributes
+#     midpoint.attributes$arrow   <- midpoint.arrow 
+#     midpoint.aes                <- edge.aes
+#     midpoint.aes$x              <- (edge.coords$start.x + edge.coords$slut.x) / 2
+#     midpoint.aes$y              <- (edge.coords$start.y + edge.coords$slut.y) / 2
+#     
+# #     ax                          <- edge.coords$slut.x - midpoint.aes$x
+# #     ay                          <- edge.coords$slut.y - midpoint.aes$y
+# #     crazy                       <- (edge.coords$slut.y / 10000) * 0.001
+# #     els                         <- edge.coords$slut.y < midpoint.aes$y
+# 
+# # Her finder bevæger vi os 1/l hen af vectoren imod slutpunktet. x1 kan så være midpunktet.
+# # l = sqrt((x2 - x1)^2 + (y2 -y1)^2)
+# # x3 = x1 + (1/l) * (x2 - x1)
+# # y3 = y1 + (1/l) * (y2 - y1)
+# 
+#     L                            <- sqrt(((edge.coords$slut.x - midpoint.aes$x)^2) + ((edge.coords$slut.y - midpoint.aes$y)^2))
+#     midpoint.aes$xend            <- midpoint.aes$x + (1/L) * (edge.coords$slut.x - midpoint.aes$x)
+#     midpoint.aes$yend            <- midpoint.aes$y + (1/L) * (edge.coords$slut.y - midpoint.aes$y)
+#     #midpoint.aes$xend           <- midpoint.aes$x + ((ax / ay) * crazy)
+#     #midpoint.aes$yend           <- midpoint.aes$y + crazy
+# #    midpoint.aes$yend[els]      <- midpoint.aes$y[els] - crazy
+#     midpoint.aes$group          <- paste(midpoint.aes$x, midpoint.aes$y)
+#     
+#     }
+#   
+#   text.l                  <- list(size=text.size, color=text.colour, alpha=text.alpha, vjust=text.vjust, lineheight=1)
+#   t.i                     <- unlist(lapply(text.l, length)) == 1
+#   text.attributes         <- text.l[t.i]
+#   text.aes                <- text.l[t.i==FALSE]
+#   text.aes$x              <- vertex.coords$x
+#   text.aes$y              <- vertex.coords$y
+#   text.aes$label          <- rownames(vertex.coords)
+#   
+#   # Plot edges
+#   p <- ggplot()
+#   
+#   if(identical(edges, TRUE)){
+#     edge.attributes$mapping     <- do.call("aes", edge.aes)
+#     p <- p + do.call("geom_segment", edge.attributes, quote=TRUE)
+#   }
+#   
+#   # Plot midpoints
+#   
+#   if(identical(midpoints, TRUE)){
+#     midpoint.attributes$mapping     <- do.call("aes", midpoint.aes)
+#     p <- p + do.call("geom_segment", midpoint.attributes, quote=TRUE)
+#   }
+#   
+#   # Plot vertices
+#   vertex.attributes$mapping     <- do.call("aes", vertex.aes)
+#   p <- p + do.call("geom_point", vertex.attributes, quote=TRUE)
+#   
+#   # Plot text
+#   if(text==TRUE){
+#     text.attributes$mapping     <- do.call("aes", text.aes)
+#     p <- p + do.call("geom_text", text.attributes, quote=TRUE)
+#   }
+#   
+#   # Formatting
+#   p <- p + theme_bw()
+#   p <- p + labs(alpha="Alpha", shape="Shape", color="Color", linetype="Linetype", size="Size", fill="Fill")
+#   
+#   if(legend == "bottom")  p <- p + theme(legend.position = "bottom", legend.direction = "horizontal", legend.box = "horizontal")
+#   if(legend == "none")    p <- p + theme(legend.position = "none")
+#   
+#   p + theme(axis.line=element_blank(),axis.text.x=element_blank(),
+#             axis.text.y=element_blank(),axis.ticks=element_blank(),
+#             axis.title.x=element_blank(),
+#             axis.title.y=element_blank(),
+#             panel.background=element_blank(),panel.border=element_blank(),panel.grid.major=element_blank(),
+#             panel.grid.minor=element_blank(),plot.background=element_blank())
+#   
+#   
+#   
+# }
+# 
 
 
 ##################################
@@ -428,39 +438,82 @@ vertex.coord <- function(graph, layout=layout.fruchterman.reingold(graph)){
 #' @param edge.size
 #' @param border.padding
 #' @param title.line
+#' @param vertex.size if "totals" the size of the vertices is derived from the totals in mxa.b. If any other value it is the row.value for id.
+#' @param small.cell.reduction vertices with movements below this cutpoint are given a different shape.
 #' @param ...
 #' @export
+#' @examples
+#' data(occupations)
+#' ego.plot(mob.seg, mob.mat, id = 2)
 
-ego.plot <- function(segmenter, mxa.b, id = 1, lay = layout.matrix(segmenter),
-                     edge.color = "black",
-                     edge.size = 0.8,
+ego.plot <- function(segmenter, mxa.b, id = 1,
+                     lay         = layout.matrix(segmenter),
+                     edge.size   = 0.8,
                      border.padding = 1,
-                     title.line = TRUE,
-                     ...
-                     
-                     
-                     
+                     title.line  = TRUE,
+                     vertex.size = "totals",
+                     small.cell.reduction = 5,
+                     edge.weight = "discrete",
+                     color.scheme = "RdPu",
+                     ...                   
 ){
+  l             <- nrow(mxa.b)
+  wm            <- weight.matrix(mxa.b, cut.off = 0, small.cell.reduction = small.cell.reduction, symmetric = FALSE)
+  freq.mat      <- mxa.b[-l, -l]
+  wm            <- segment.edges(segmenter, cut.off = 0.95, segment.reduction = 1, small.cell.reduction = small.cell.reduction)
   
-  wm          <- weight.matrix(mxa.b, cut.off = 0, small.cell.reduction = 5, symmetric = FALSE)
-  freq.mat    <- mxa.b[-nrow(mxa.b), -nrow(mxa.b)]
-  wm          <- segment.edges(segmenter, cut.off = 0.95, segment.reduction = 1, small.cell.reduction = 5)
+  MR            <- wm[id, ]
+  MC            <- wm[, id]
+  M             <- (freq.mat[id, ] + freq.mat[, id]) / 2
   
-  MR        <- wm[id,]
-  MC        <- wm[,id]
-  M         <- freq.mat[id, ] # Den her kender vi ikke retningen på - måske skal række og kolonne lægges sammen og dividers med 2, så er det alle der udveksler...
-  if(nrow(M) > 1) M <- colSums(M)
-  nul       <- as.factor(M == 0)
-  M[id]     <- NA
-  EM        <- matrix(0 , nrow = nrow(wm), ncol = ncol(wm))
-  EM[,id]   <- MC
-  EM[id,]   <- MR
+  
+  nul           <- M < small.cell.reduction
+  nul[id]       <- "X_elite"
+  nul           <- as.factor(nul)
+  M[id]         <- NA
+  EM            <- matrix(0 , nrow = nrow(wm), ncol = ncol(wm))
+  EM[,id]       <- MC
+  EM[id,]       <- MR
   EM[EM <= 0.99] <- 0
-  dimnames(EM) <- dimnames(freq.mat)
+  dimnames(EM)  <- dimnames(freq.mat)
+  M.share       <- M/sum(M[-id])
   
-  p.ego     <- gg.jonas(segmenter, layout = lay, edges = EM, vertex.fill = M, vertex.size = M, edge.size = edge.size, border.padding = 1, show.text = TRUE, border.text.size = 3, edge.color = edge.color, vertex.shape = nul)
-  p.ego     <- p.ego + scale_fill_continuous(high = "navyblue", low = "white", na.value = "purple", guide = "none") + scale_size_continuous(range = c(3, 10), na.value = 5) + scale_shape_manual(values = c(21, 4), guide = "none")
-  p.ego     <- p.ego + guides(size = guide_legend(override.aes = list(shape = 21)))
+  if(identical(vertex.size, "totals")){
+    vertex.size        <- (mxa.b[l, ] + mxa.b[, l]) / 2
+    vertex.size        <- vertex.size[-l]
+    vertex.size[id]    <- NA
+  }
+  
+  scales                   <- list()
+  scales$fill              <- scale_fill_gradientn(colours = brewer.pal(5, color.scheme), na.value = "black", labels = percent, name = "Mobile")
+  scales$size              <- scale_size_continuous(range = c(3, 8), na.value = 8, name = "Antal")
+  scales$shape             <- scale_shape_manual(values = c(21, 4, -0x25C9), guide = "none")
+  scales$guide_fill        <- guides(fill = guide_legend(override.aes = list(size = 5, shape = 21)))
+  scales$guide_size        <- guides(size = guide_legend(override.aes = list(shape = 21)))
+    
+  if(identical(edge.weight, "discrete")){
+    gra.edges              <- graph.adjacency(EM, mode = "directed", weighted = TRUE, diag = NULL)                     
+    ew                     <- E(gra.edges)$weight
+    edge.weight                         <- ew
+    edge.weight[ew < 1.5]               <- "1-1.5"
+    edge.weight[ew > 1.5 & ew < 2.5]    <- "1.5-2.5"
+    edge.weight[ew > 2.5 & ew < 5]      <- "2.5-5"
+    edge.weight[ew > 5   & ew < Inf]    <- "+5"
+    edge.weight                         <- as.factor(edge.weight)
+    #scales$alpha                        <- scale_alpha_discrete(range = c(0.5, 1))
+    scales$color                        <- scale_color_manual(values = brewer.pal(nlevels(edge.weight)+1, color.scheme)[-1], name = "Relativ risiko")
+  }else{
+    edge.weight             <- "weight"
+  }
+  
+  
+  p.ego     <- gg.jonas(segmenter, layout = lay,
+                        edges = EM, edge.size = edge.size, edge.color = edge.weight, edge.alpha = 1,
+                        vertex.fill = M.share, vertex.size = vertex.size, vertex.shape = nul,
+                        border.padding = 1, border.text.size = 3, 
+                        show.text = TRUE, ...)
+  p.ego     <- p.ego + scales
+  
   if(identical(title.line, TRUE))  p.ego  <- p.ego + annotate("segment", x = Inf, xend = -Inf, y = Inf, yend = Inf, color = "black", lwd = 1)
   p.ego + ggtitle(rownames(wm)[id]) 
 }
