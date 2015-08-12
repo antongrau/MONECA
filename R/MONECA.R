@@ -9,4 +9,5 @@
 #' @import RColorBrewer
 #' @import scales
 #' @import soc.elite
+#' @import toOrdinal
 NULL

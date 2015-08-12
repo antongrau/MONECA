@@ -477,16 +477,18 @@ ego.plot <- function(segmenter, mxa.b, id = 1,
   EM[EM <= 0.99] <- 0
   dimnames(EM)  <- dimnames(freq.mat)
   M.share       <- M/sum(M[-id])
+  EM[nul == "TRUE",]     <- 0
+  EM[, nul == "TRUE"]    <- 0
   
   if(identical(vertex.size, "totals")){
     vertex.size        <- (mxa.b[l, ] + mxa.b[, l]) / 2
     vertex.size        <- vertex.size[-l]
-    vertex.size[id]    <- NA
+    #vertex.size[id]    <- NA
   }
   
   scales                   <- list()
   scales$fill              <- scale_fill_gradientn(colours = brewer.pal(5, color.scheme), na.value = "black", labels = percent, name = "Mobile")
-  scales$size              <- scale_size_continuous(range = c(3, 8), na.value = 8, name = "Antal")
+  scales$size              <- scale_size_continuous(range = c(2, 8), na.value = 8, name = "Antal")
   scales$shape             <- scale_shape_manual(values = c(21, 4, -0x25C9), guide = "none")
   scales$guide_fill        <- guides(fill = guide_legend(override.aes = list(size = 5, shape = 21)))
   scales$guide_size        <- guides(size = guide_legend(override.aes = list(shape = 21)))
@@ -518,7 +520,129 @@ ego.plot <- function(segmenter, mxa.b, id = 1,
   p.ego + ggtitle(rownames(wm)[id]) 
 }
 
-
+#' Stair plot
+#' 
+#' Plots the change in segmentation for each level in a MONECA analysis
+#' @param niveau
+#' @param layout
+#' @param edges
+#' @param mode
+#' @param vertex.size
+#' @param vertex.alpha
+#' @param vertex.color
+#' @param vertex.shape
+#' @param show.edges
+#' @param edge.size
+#' @param edge.alpha
+#' @param edge.color
+#' @param edge.line
+#' @param show.text
+#' @param text.size
+#' @param text.color
+#' @param text.alpha
+#' @param text.vjust
+#' @param show.borders
+#' @param border.size
+#' @param border.fill
+#' @param border.color
+#' @param border.alpha
+#' @param border.padding
+#' @param border.text
+#' @param border.labels
+#' @param border.text.size
+#' @param border.text.color
+#' @param border.text.vjust
+#' @param border.text.hjust
+#' @param midpoints
+#' @param midpoint.arrow
+#' @param edge.text
+#' @param edge.text.size
+#' @param edge.text.alpha
+#' @param legend
+#' @param level.title
+#' @return a list of ggplot2 objects
+#' @export
+#' @examples
+#' data(occupations)
+#' stair.plot(mob.seg)[[2]]
+stair.plot              <- function(segmenter,
+                                    niveau             = seq(segmenter$segment.list),
+                                    layout             = layout.matrix(segmenter),
+                                    edges              = segment.edges(segmenter, cut.off = 1, method = "all", segment.reduction = 0, niveau = 1),
+                                    mode               = "directed",
+                                    
+                                    #membership         = segment.membership(segmenter),
+                                    
+                                    vertex.size        = "total",
+                                    vertex.alpha       = 1,
+                                    vertex.color       = "black",
+                                    vertex.shape       = 21,
+                                    
+                                    show.edges         = TRUE,            
+                                    edge.size          = 0.5,
+                                    edge.alpha         = "weight",
+                                    edge.color         = "black",
+                                    edge.line          = "solid",
+                                    
+                                    show.text          = FALSE,
+                                    text.size          = 3,
+                                    text.color        = "black",
+                                    text.alpha         = 1,
+                                    text.vjust         = 1.5,
+                                    
+                                    show.borders       = TRUE,
+                                    border.size        = 1,
+                                    border.fill        = NA,
+                                    border.color       = "black",
+                                    border.alpha       = 1,
+                                    border.padding     = 1,
+                                    border.text        = TRUE,
+                                    border.labels      = "segments",
+                                    border.text.size   = 4,
+                                    border.text.color  = "black",
+                                    border.text.vjust  = -0.2,
+                                    border.text.hjust  = 1,
+                                    
+                                    midpoints          = TRUE,
+                                    midpoint.arrow     = arrow(angle = 20, length = unit(0.33, "cm"), ends = "last", type = "closed"),
+                                    
+                                    edge.text          = FALSE,
+                                    edge.text.size     = 3,
+                                    edge.text.alpha    = 0.9,
+                                    
+                                    legend             = "side",
+                                    level.title        = "Level",
+                                    ...){  
+  jonas.arguments         <- as.list(environment())
+  list.scales             <- list()
+  list.scales$size        <- scale_size_continuous(range = c(2, 4.5), guide = "none")
+  list.scales$fill        <- scale_fill_grey(start = 0, end = 1, guide = "none")
+  list.scales$alpha       <- scale_alpha_continuous(guide = "none", range = c(0.05, 0.9))
+  
+  niveau.list             <- lapply(niveau, FUN = seq, from = niveau[1])
+  
+  memberships.list        <- lapply(niveau.list, segment.membership, segmenter = segmenter)
+  memberships.list        <- lapply(memberships.list, subset, select = 2)
+  memberships.list        <- lapply(memberships.list, unlist, recursive = FALSE, use.names = FALSE)
+  memberships.list        <- lapply(memberships.list, as.character)
+  
+  transition              <- list()
+  transition[[1]]         <- rep(TRUE, length = length(memberships.list[[1]]))
+  for(i in seq_along(niveau.list)[-1]) transition[[i]] <- memberships.list[[i-1]] == memberships.list[[i]]
+  
+  plot.list               <- list()
+  for(i in seq_along(niveau.list)){
+    jonas.call             <- jonas.arguments
+    jonas.call$segmenter   <- segmenter
+    jonas.call$vertex.fill <- transition[[i]]
+    jonas.call$niveau      <- niveau.list[[i]]
+    p              <- do.call(what = gg.jonas, args = jonas.call)
+    title          <- paste(toOrdinal(niveau[i]), level.title)
+    p              <- p + list.scales + ggtitle(title) + annotate("segment", x = Inf, xend = -Inf, y = Inf, yend = Inf, color = "black", lwd = 1)
+    plot.list[[i]] <- p
+  }
+  plot.list
+}
 
 # Eksempler
 # 
