@@ -87,6 +87,9 @@
 #' @param edge.text.alpha
 #' @param legend
 #' @export
+#' @examples 
+#' data(occupations)
+#' gg.jonas(mob.seg)
 gg.jonas               <- function(segmenter,
                                    niveau             = seq(segmenter$segment.list),
                                    layout             = layout.matrix(segmenter),
@@ -116,7 +119,7 @@ gg.jonas               <- function(segmenter,
                                    border.fill        = NA,
                                    border.color       = "black",
                                    border.alpha       = 1,
-                                   border.padding     = 1,
+                                   border.padding     = 0.7,
                                    border.text        = TRUE,
                                    border.labels      = "segments",
                                    border.text.size   = 4,
@@ -131,8 +134,7 @@ gg.jonas               <- function(segmenter,
                                    edge.text.size     = 3,
                                    edge.text.alpha    = 0.9,
                                                                       
-                                   legend             = "side",
-                                   ...
+                                   legend             = "side"
                                    ){
 
 if(identical(border.labels, "segments")){
@@ -183,11 +185,11 @@ if(identical(vertex.size, "total")){
 if(identical(vertex.size, "col.total")){
   col.total           <- data.frame(t(segmenter$mat.list[[1]]))$Total
   vertex.size         <- row.total[-length(col.total)]
-  scale_modifications$vertex.size <- scale_size_continuous(range = c(4,10))
+  scale_modifications$vertex.size <- scale_size_continuous(range = c(4,9))
 } 
 
 
-p                      <- graph.plot(gra.edges, layout=layout,
+p                      <- graph.plot(gra.edges, layout=as.matrix(layout[, 1:2]),
                           vertex.color = vertex.color, vertex.fill = vertex.fill, vertex.shape = vertex.shape,
                           vertex.size = vertex.size, vertex.alpha = vertex.alpha,
                           edges = show.edges, edge.color = edge.color, edge.alpha = edge.alpha,
@@ -611,9 +613,11 @@ stair.plot              <- function(segmenter,
                                     edge.text.alpha    = 0.9,
                                     
                                     legend             = "side",
-                                    level.title        = "Level",
-                                    ...){  
+                                    level.title        = "Level"
+                                    ){  
   jonas.arguments         <- as.list(environment())
+  jonas.arguments$level.title <- NULL
+  
   list.scales             <- list()
   list.scales$size        <- scale_size_continuous(range = c(2, 4.5), guide = "none")
   list.scales$fill        <- scale_fill_grey(start = 0, end = 1, guide = "none")

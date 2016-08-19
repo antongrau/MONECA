@@ -310,7 +310,7 @@ segment.colors <- function(segmenter){
 #' @param mode the mode
 #' @export
 # old attraction attraction=c(200, 100, 15, 5, 3)
-layout.matrix <- function(segmenter, attraction=c(200, 100, 15, 5, 3), area.size=200000, niveau=seq(segmenter$segment.list), mode="directed", weight.adjustment = 1, ...){
+layout.matrix <- function(segmenter, attraction=c(320, 40, 10, 4, 2), niveau=seq(segmenter$segment.list), mode = "directed", weight.adjustment = 1, start.temp = 20, niter = 10000, tie.adjustment = 0.4, ...){
   
   seg              <- segmenter
   seg$segment.list <- segmenter$segment.list[niveau]
@@ -323,7 +323,8 @@ layout.matrix <- function(segmenter, attraction=c(200, 100, 15, 5, 3), area.size
 #   mx.1            <- mx.1_net[-l,-l]
 #   mx.attract      <- mx.1
 #   
-  mx.attract      <- weight.matrix(segmenter$mat.list[[1]], cut.off=0, diagonal=TRUE, symmetric=FALSE)
+  mx.attract      <- weight.matrix(segmenter$mat.list[[1]], cut.off = 0, diagonal=TRUE, symmetric=FALSE)
+  mx.attract      <- mx.attract ^ tie.adjustment
   
   gra.lay         <- graph.adjacency(mx.attract, mode="directed", weighted=TRUE, diag=NULL)
   
@@ -340,10 +341,16 @@ layout.matrix <- function(segmenter, attraction=c(200, 100, 15, 5, 3), area.size
   
   diag(mx.attract) <- 0
   gra.lay          <- graph.adjacency(mx.attract, mode=mode, weighted=TRUE, diag=NULL)
-  
-  layout           <- layout.fruchterman.reingold(gra.lay, area=vcount(gra.lay)^2*area.size, weights=E(gra.lay)$weight^weight.adjustment, ...)
-  
-  return(layout)
+
+  # wm               <- weight.matrix(segmenter)
+  # a                <- rowSums(wm)
+  # b                <- colSums(wm)
+  # start            <- cbind(max(a) - a, max(b)- b)
+  # start            <- norm_coords(start, xmin = -100, xmax = 100, ymin = -100, ymax = 100)
+  # 
+  layout           <- layout_with_fr(gra.lay, weights=E(gra.lay)$weight*weight.adjustment, niter = niter, start.temp = start.temp, ...)
+  layout[, 1:2]    <- norm_coords(layout[, 1:2], xmin = 1, xmax = 10^10, ymin = 1, ymax = 10^10)
+  layout
 }
 
 #' Segment edges
