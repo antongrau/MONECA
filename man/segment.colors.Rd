@@ -4,7 +4,7 @@
 \alias{segment.colors}
 \title{Segment colors}
 \usage{
-segment.colors(segmenter)
+segment.colors(segments)
 }
 \description{
 Creates a grey scale for the segments

@@ -5,12 +5,12 @@
 # library(igraph)
 # library(ggplot2)
 #source("~/My Dropbox/R/Elite/soc.sna//soc.sna.R")
-# layout             = layout.matrix(segmenter)
+# layout             = layout.matrix(segments)
 # 
 # layout <- lay
-# niveau             = seq(segmenter$segment.list)
+# level             = seq(segments$segment.list)
 # 
-# edges              = log(segment.edges(segmenter)+1)
+# edges              = log(segment.edges(segments)+1)
 # mode               = "directed"
 # 
 # vertex.size        = "row.total"
@@ -45,11 +45,11 @@
 # border.text.color  = "black"
 # border.text.vjust  = -0.2
 
-#' ggplots by Jonas
+#' ggplots for moneca
 #' 
 #' Plotting of MONECA objects
 #' 
-#' @param niveau
+#' @param level
 #' @param layout
 #' @param edges
 #' @param mode
@@ -89,11 +89,11 @@
 #' @export
 #' @examples 
 #' data(occupations)
-#' gg.jonas(mob.seg)
-gg.jonas               <- function(segmenter,
-                                   niveau             = seq(segmenter$segment.list),
-                                   layout             = layout.matrix(segmenter),
-                                   edges              = log(segment.edges(segmenter)+1),
+#' gg.moneca(mob.seg)
+gg.moneca               <- function(segments,
+                                   level             = seq(segments$segment.list),
+                                   layout             = layout.matrix(segments),
+                                   edges              = log(segment.edges(segments)+1),
                                    mode               = "directed",
                                    
                                    vertex.size        = "total",
@@ -138,7 +138,7 @@ gg.jonas               <- function(segmenter,
                                    ){
 
 if(identical(border.labels, "segments")){
-membership             <- segment.membership(segmenter, niveau = niveau)[,2]
+membership             <- segment.membership(segments, level = level)[,2]
 layout                 <- data.frame(layout, membership = membership)
 colnames(layout)       <- c("X", "Y", "Membership")
 }
@@ -149,10 +149,10 @@ colnames(layout)       <- c("X", "Y", "Membership")
 }
   
   
-niveau                 <- niveau[niveau != 1]
-seg                    <- segmenter
-seg$segment.list       <- segmenter$segment.list[niveau]
-seg$mat.list           <- segmenter$mat.list[niveau]
+level                 <- level[level != 1]
+seg                    <- segments
+seg$segment.list       <- segments$segment.list[level]
+seg$mat.list           <- segments$mat.list[level]
 segments               <- unlist(seg$segment.list, recursive=FALSE)
 
 
@@ -170,12 +170,12 @@ if(identical(edge.color, "weight")){
 if(identical(edge.alpha, "weight"))   edge.alpha   <- E(gra.edges)$weight
 
 if(identical(vertex.fill, "segment")){
-  vertex.fill  <- segment.membership(segmenter, niveau = niveau)$membership
+  vertex.fill  <- segment.membership(segments, level = level)$membership
   scale_modifications$vertex.fill <- scale_fill_discrete(guide = "none")
 }
 
 if(identical(vertex.size, "total")){
-  mat                 <- segmenter$mat.list[[1]]
+  mat                 <- segments$mat.list[[1]]
   totals              <- (mat[nrow(mat),] + mat[, nrow(mat)]) / 2
   totals              <- totals[-length(totals)]
   vertex.size         <- totals
@@ -183,7 +183,7 @@ if(identical(vertex.size, "total")){
 } 
 
 if(identical(vertex.size, "col.total")){
-  col.total           <- data.frame(t(segmenter$mat.list[[1]]))$Total
+  col.total           <- data.frame(t(segments$mat.list[[1]]))$Total
   vertex.size         <- row.total[-length(col.total)]
   scale_modifications$vertex.size <- scale_size_continuous(range = c(4,9))
 } 
@@ -228,7 +228,7 @@ list.annotate            <- lapply(seg$segment.list, annotate_segments, layout =
 p                        <- p + list.annotate
 }
 
-if(identical(border.text, TRUE) & length(niveau) > 0){
+if(identical(border.text, TRUE) & length(level) > 0){
   
   border.padding.diameter  <- max(layout[, 1:2]) / ((1/border.padding) * 20)
   seg.circles              <- list()
@@ -432,7 +432,7 @@ vertex.coord <- function(graph, layout=layout.fruchterman.reingold(graph)){
 #' Ego plots
 #'
 #' Plots of the connections and movements from a single node
-#' @param segmenter
+#' @param segments
 #' @param mxa.b
 #' @param id
 #' @param lay
@@ -448,8 +448,8 @@ vertex.coord <- function(graph, layout=layout.fruchterman.reingold(graph)){
 #' data(occupations)
 #' ego.plot(mob.seg, mob.mat, id = 2)
 
-ego.plot <- function(segmenter, mxa.b, id = 1,
-                     lay         = layout.matrix(segmenter),
+ego.plot <- function(segments, mxa.b, id = 1,
+                     lay         = layout.matrix(segments),
                      edge.size   = 0.8,
                      border.padding = 1,
                      title.line  = TRUE,
@@ -462,7 +462,7 @@ ego.plot <- function(segmenter, mxa.b, id = 1,
   l             <- nrow(mxa.b)
   wm            <- weight.matrix(mxa.b, cut.off = 0, small.cell.reduction = small.cell.reduction, symmetric = FALSE)
   freq.mat      <- mxa.b[-l, -l]
-  wm            <- segment.edges(segmenter, cut.off = 0.95, segment.reduction = 1, small.cell.reduction = small.cell.reduction)
+  wm            <- segment.edges(segments, cut.off = 0.95, segment.reduction = 1, small.cell.reduction = small.cell.reduction)
   
   MR            <- wm[id, ]
   MC            <- wm[, id]
@@ -511,7 +511,7 @@ ego.plot <- function(segmenter, mxa.b, id = 1,
   }
   
   
-  p.ego     <- gg.jonas(segmenter, layout = lay,
+  p.ego     <- gg.moneca(segments, layout = lay,
                         edges = EM, edge.size = edge.size, edge.color = edge.weight, edge.alpha = 1,
                         vertex.fill = M.share, vertex.size = vertex.size, vertex.shape = nul,
                         border.padding = 1, border.text.size = 3, 
@@ -525,7 +525,7 @@ ego.plot <- function(segmenter, mxa.b, id = 1,
 #' Stair plot
 #' 
 #' Plots the change in segmentation for each level in a MONECA analysis
-#' @param niveau
+#' @param level
 #' @param layout
 #' @param edges
 #' @param mode
@@ -567,13 +567,13 @@ ego.plot <- function(segmenter, mxa.b, id = 1,
 #' @examples
 #' data(occupations)
 #' stair.plot(mob.seg)[[2]]
-stair.plot              <- function(segmenter,
-                                    niveau             = seq(segmenter$segment.list),
-                                    layout             = layout.matrix(segmenter),
-                                    edges              = segment.edges(segmenter, cut.off = 1, method = "all", segment.reduction = 0, niveau = 1),
+stair.plot              <- function(segments,
+                                    level             = seq(segments$segment.list),
+                                    layout             = layout.matrix(segments),
+                                    edges              = segment.edges(segments, cut.off = 1, method = "all", segment.reduction = 0, level = 1),
                                     mode               = "directed",
                                     
-                                    #membership         = segment.membership(segmenter),
+                                    #membership         = segment.membership(segments),
                                     
                                     vertex.size        = "total",
                                     vertex.alpha       = 1,
@@ -615,33 +615,33 @@ stair.plot              <- function(segmenter,
                                     legend             = "side",
                                     level.title        = "Level"
                                     ){  
-  jonas.arguments         <- as.list(environment())
-  jonas.arguments$level.title <- NULL
+  plot.arguments         <- as.list(environment())
+  plot.arguments$level.title <- NULL
   
   list.scales             <- list()
   list.scales$size        <- scale_size_continuous(range = c(2, 4.5), guide = "none")
   list.scales$fill        <- scale_fill_grey(start = 0, end = 1, guide = "none")
   list.scales$alpha       <- scale_alpha_continuous(guide = "none", range = c(0.05, 0.9))
   
-  niveau.list             <- lapply(niveau, FUN = seq, from = niveau[1])
+  level.list             <- lapply(level, FUN = seq, from = level[1])
   
-  memberships.list        <- lapply(niveau.list, segment.membership, segmenter = segmenter)
+  memberships.list        <- lapply(level.list, segment.membership, segments = segments)
   memberships.list        <- lapply(memberships.list, subset, select = 2)
   memberships.list        <- lapply(memberships.list, unlist, recursive = FALSE, use.names = FALSE)
   memberships.list        <- lapply(memberships.list, as.character)
   
   transition              <- list()
   transition[[1]]         <- rep(TRUE, length = length(memberships.list[[1]]))
-  for(i in seq_along(niveau.list)[-1]) transition[[i]] <- memberships.list[[i-1]] == memberships.list[[i]]
+  for(i in seq_along(level.list)[-1]) transition[[i]] <- memberships.list[[i-1]] == memberships.list[[i]]
   
   plot.list               <- list()
-  for(i in seq_along(niveau.list)){
-    jonas.call             <- jonas.arguments
-    jonas.call$segmenter   <- segmenter
-    jonas.call$vertex.fill <- transition[[i]]
-    jonas.call$niveau      <- niveau.list[[i]]
-    p              <- do.call(what = gg.jonas, args = jonas.call)
-    title          <- paste(toOrdinal(niveau[i]), level.title)
+  for(i in seq_along(level.list)){
+    plot.call             <- plot.arguments
+    plot.call$segments   <- segments
+    plot.call$vertex.fill <- transition[[i]]
+    plot.call$level      <- level.list[[i]]
+    p              <- do.call(what = gg.moneca, args = plot.call)
+    title          <- paste(toOrdinal(level[i]), level.title)
     p              <- p + list.scales + ggtitle(title) + annotate("segment", x = Inf, xend = -Inf, y = Inf, yend = Inf, color = "black", lwd = 1)
     plot.list[[i]] <- p
   }
@@ -650,21 +650,21 @@ stair.plot              <- function(segmenter,
 
 # Eksempler
 # 
-# class.mem       <- segment.membership(segmenter)$membership
-# class.total     <- data.frame(segmenter$mat.list[[1]])$Total
+# class.mem       <- segment.membership(segments)$membership
+# class.total     <- data.frame(segments$mat.list[[1]])$Total
 # class.total     <- class.total[-length(class.total)]
 # 
-# gg.jonas(segmenter)
+# gg.moneca(segments)
 # 
-# gg.jonas(segmenter, show.text = FALSE, legend = "bottom")
+# gg.moneca(segments, show.text = FALSE, legend = "bottom")
 # 
-# gg.jonas(segmenter, vertex.fill = class.mem, vertex.size = class.total)
+# gg.moneca(segments, vertex.fill = class.mem, vertex.size = class.total)
 # 
 # edges.trunk <- edges
 # 
 # edges.trunk[edges >= 5] <- 5
 # 
-# gg.jonas(segmenter, edges = edges.trunk)
+# gg.moneca(segments, edges = edges.trunk)
 
 # Løsningen var at tage den convekse hull af punkterne - tegne cirkler for hvor hvert punkt i hullen og derefter tage hullen af disse cirkler.
 

@@ -4,7 +4,7 @@
 \alias{segment.quality}
 \title{Segment quality}
 \usage{
-segment.quality(segmenter, final.solution = FALSE)
+segment.quality(segments, final.solution = FALSE)
 }
 \description{
 Segment quality

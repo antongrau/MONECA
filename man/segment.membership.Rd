@@ -4,7 +4,7 @@
 \alias{segment.membership}
 \title{Segment membership}
 \usage{
-segment.membership(segmenter, niveau = seq(segmenter$segment.list))
+segment.membership(segments, level = seq(segments$segment.list))
 }
 \description{
 A dataframe with the segment membership for each category

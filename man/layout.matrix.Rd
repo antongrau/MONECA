@@ -4,17 +4,17 @@
 \alias{layout.matrix}
 \title{Layout matrix}
 \usage{
-layout.matrix(segmenter, attraction = c(320, 40, 10, 4, 2),
-  niveau = seq(segmenter$segment.list), mode = "directed",
+layout.matrix(segments, attraction = c(320, 40, 10, 4, 2),
+  level = seq(segments$segment.list), mode = "directed",
   weight.adjustment = 1, start.temp = 20, niter = 10000,
   tie.adjustment = 0.4, ...)
 }
 \arguments{
-\item{segmenter}{a segment object}
+\item{segments}{a segment object}
 
 \item{attraction}{the distance between the segment points for each level.}
 
-\item{niveau}{the included levels}
+\item{level}{the included levels}
 
 \item{mode}{the mode}
 

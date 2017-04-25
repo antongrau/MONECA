@@ -18,6 +18,6 @@ weight.matrix(mx, cut.off = 1, symmetric = TRUE, diagonal = NULL,
 a matrix of relative risks
 }
 \description{
-Creates a matrix of weights for the jonas function.
+Creates a matrix of weights for the \link{find.segments} function.
 }
 

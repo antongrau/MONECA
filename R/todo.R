@@ -16,7 +16,7 @@
 # 
 # data(occupations)
 # 
-# gg.jonas(mob.seg, show.text = F)
+# gg.moneca(mob.seg, show.text = F)
 # 
 # wm <- weight.matrix(seg$mat.list[[1]])
 # 
@@ -31,7 +31,7 @@
 # attraction
 # lay <- layout.matrix(seg, attraction = attraction, weight.adjustment = 1, start.temp = 20, niter = 10000, tie.adjustment = 0.4)
 # 
-# gg.jonas(seg, layout = lay, show.text = F, edges = log(edges+1), edge.color = "black", edge.size = 0.2, border.padding = 0.8)
+# gg.moneca (seg, layout = lay, show.text = F, edges = log(edges+1), edge.color = "black", edge.size = 0.2, border.padding = 0.8)
 # 
 # # Først en edge matrice:
 # 

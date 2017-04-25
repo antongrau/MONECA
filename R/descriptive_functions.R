@@ -1,10 +1,9 @@
-#' Overordnende.niveau
-#' 
+#' Print moneca descriptives
 #' @export
-overordnede.niveau <- function(segmenter, small.cell.reduction=segmenter$small.cell.reduction){
+print.moneca <- function(segments, small.cell.reduction=segments$small.cell.reduction){
   
   # Hvor mange procent flytter sig i det hele taget?
-  mx            <- segmenter$mat.list[[1]]
+  mx            <- segments$mat.list[[1]]
   l             <- ncol(mx)
   total.total   <- mx[l,l]
   total.mobile  <- sum(mx[-l,-l])
@@ -19,15 +18,15 @@ overordnede.niveau <- function(segmenter, small.cell.reduction=segmenter$small.c
     internal.mobility    <- sum(mx.dia)/sum(mx[-l,-l])
     return(internal.mobility)
   }
-  diagonal.mobility <- unlist(lapply(segmenter$mat.list, diag.mobility))
+  diagonal.mobility <- unlist(lapply(segments$mat.list, diag.mobility))
   diagonal.mobility
   
   ## Hvor meget af den samlede mobilitet ligger i det oversandsynlige?
   # Sandsynlighedsmatricen
-  mob.in.edges     <- vector(length=length(segmenter$segment.list))
-  for (i in seq(segmenter$segment.list)){
-    wm               <- weight.matrix(mx=segmenter$mat.list[[i]], cut.off=1, diagonal=TRUE, symmetric=FALSE, small.cell.reduction=0)
-    mm               <- segmenter$mat.list[[i]]
+  mob.in.edges     <- vector(length=length(segments$segment.list))
+  for (i in seq(segments$segment.list)){
+    wm               <- weight.matrix(mx=segments$mat.list[[i]], cut.off=1, diagonal=TRUE, symmetric=FALSE, small.cell.reduction=0)
+    mm               <- segments$mat.list[[i]]
     l                <- nrow(mm)
     row.margin       <- rowSums(mm[-l,-l])
     mm               <- mm[-l,-l]
@@ -64,7 +63,7 @@ overordnede.niveau <- function(segmenter, small.cell.reduction=segmenter$small.c
     return(out)
   }
   
-  degree.stats <- lapply(segmenter$mat.list,segment.degree, small.cell.reduction)
+  degree.stats <- lapply(segments$mat.list,segment.degree, small.cell.reduction)
   
   # Resultatet
   
@@ -72,15 +71,15 @@ overordnede.niveau <- function(segmenter, small.cell.reduction=segmenter$small.c
   
   
   # Pretty printing
-  class(out) <- "descriptive.jonas"
-  return(out)
+  class(out) <- "descriptive.moneca"
+
+  MONECA:::print.descriptive.moneca(out)
 }
 
-#' Print descriptive jonas
+#' Print descriptive moneca
 #' 
-#' @export
 
-print.descriptive.jonas <- function(x){
+print.descriptive.moneca <- function(x){
   
   # Out matrice
   
@@ -121,7 +120,7 @@ print.descriptive.jonas <- function(x){
    
   # Print
   
-  cat(format("General descriptives of Jonas analysis:",   width=90, justify="centre"),"\n", "\n", 
+  cat(format("General descriptives of moneca analysis:",   width=90, justify="centre"),"\n", "\n", 
       format("Total mobility:", width=40, justify="left"), format(round(x$total.mobility*100,1), justify="right"), "%","\n",
       format("Share of mobility within edges:", width=40, justify="left"), paste(format(round(x$samlet.oversandsynlighed*100,1), justify="right"), "%", sep=""),"\n", 
       "\n", format("Share of mobility within the diagonal for each level:", width=50, justify="left"), "\n")
@@ -130,8 +129,8 @@ print.descriptive.jonas <- function(x){
   cat("\n", format("Number of nodes for each level:", width=40, justify="left"), format(nodes), "\n")
   cat("\n", format("Density for each level:", width=40, justify="left"), format(round(density, 3)), "\n")
   cat("\n", format("Number of isolates for each level:", width=40, justify="left"), format(isolates), "\n")
-  cat("\n", "\n", format("Degree statistics per level:", width=90, justify="centre"), "\n")
-  print(res.mat)
+  # cat("\n", "\n", format("Degree statistics per level:", width=90, justify="centre"), "\n")
+  # print(res.mat)
 }
 
 #######################################################################################################
@@ -142,10 +141,10 @@ print.descriptive.jonas <- function(x){
 #' @export
 
 
-vertex.mobility <- function(segmenter){
-mat <- segmenter$mat.list[[1]]
+vertex.mobility <- function(segments){
+mat <- segments$mat.list[[1]]
 
-number.of.levels <- length(segmenter$segment.list)
+number.of.levels <- length(segments$segment.list)
 l      <- nrow(mat)
 mat    <- mat[-l,-l]
 
@@ -161,7 +160,7 @@ rownames(in.mat)  <- rownames(mat)
 
 for(level in 1:number.of.levels){
 
-segments <- unlist(segmenter$segment.list[level], recursive=FALSE)  
+segments <- unlist(segments$segment.list[level], recursive=FALSE)  
   for (i in 1:length(segments)){
     mobil.out[segments[[i]], segments[[i]]]  <- 0
     mobil.in[segments[[i]], segments[[i]]]   <- 0
@@ -192,60 +191,60 @@ return(list(out.mobility=out.mat, in.mat=in.mat))
 #' 
 #' @export
 
-segment.quality <- function(segmenter, final.solution = FALSE){
-  mat <- segmenter$mat.list[[1]]
+segment.quality <- function(segments, final.solution = FALSE){
+  mat <- segments$mat.list[[1]]
   l   <- nrow(mat)
   mat <- mat[-l, -l]
-  number.of.levels <- length(segmenter$mat.list)
+  number.of.levels <- length(segments$mat.list)
   
-  segment.qual.onelevel <- function(segmenter, niveau){
+  segment.qual.onelevel <- function(segments, level){
     
-    names <- rownames(segmenter$mat.list[[1]])
+    names <- rownames(segments$mat.list[[1]])
     names <- names[-length(names)]
     
-    seg.list.niveau <- segmenter$segment.list[[niveau]]
-    mat.niveau      <- segmenter$mat.list[[niveau]]
-    totals.niveau   <- (mat.niveau[nrow(mat.niveau),] + mat.niveau[, nrow(mat.niveau)]) / 2
-    totals.niveau   <- totals.niveau[-length(totals.niveau)]
-    mat.niveau      <- mat.niveau[-nrow(mat.niveau), -nrow(mat.niveau)]
+    seg.list.level <- segments$segment.list[[level]]
+    mat.level      <- segments$mat.list[[level]]
+    totals.level   <- (mat.level[nrow(mat.level),] + mat.level[, nrow(mat.level)]) / 2
+    totals.level   <- totals.level[-length(totals.level)]
+    mat.level      <- mat.level[-nrow(mat.level), -nrow(mat.level)]
     
-    edge.matrix        <- segment.edges(segmenter, cut.off = 1 ,  niveau = 0, small.cell.reduction = 5, segment.reduction = 0)
+    edge.matrix        <- segment.edges(segments, cut.off = 1 ,  level = 0, small.cell.reduction = 5, segment.reduction = 0)
     net.edge           <- graph.adjacency(edge.matrix, weighted = TRUE) # Tjek mode og den slags på det her svin
       
     # Segment
     seg                <- rep(NA, length(names))
-    for (i in 1 : length(seg.list.niveau)) seg[seg.list.niveau[[i]]] <- i
+    for (i in 1 : length(seg.list.level)) seg[seg.list.level[[i]]] <- i
     # Quality (or within mobility)
-    niveau.qual        <- round(diag(mat.niveau)/((rowSums(mat.niveau) + colSums(mat.niveau))/2),3)
+    level.qual        <- round(diag(mat.level)/((rowSums(mat.level) + colSums(mat.level))/2),3)
     quality            <- rep(NA, length(names))
-    for (i in 1 : length(seg.list.niveau)) quality[seg.list.niveau[[i]]] <- niveau.qual[i]
+    for (i in 1 : length(seg.list.level)) quality[seg.list.level[[i]]] <- level.qual[i]
     # Share of mobility
-    niveau.size        <- round(((rowSums(mat.niveau) + colSums(mat.niveau))/2)/sum(colSums(mat.niveau)),3)
+    level.size        <- round(((rowSums(mat.level) + colSums(mat.level))/2)/sum(colSums(mat.level)),3)
     size               <- rep(NA, length(names))
-    for (i in 1 : length(seg.list.niveau)) size[seg.list.niveau[[i]]] <- niveau.size[i]
+    for (i in 1 : length(seg.list.level)) size[seg.list.level[[i]]] <- level.size[i]
     # Density
-    niveau.density     <- rep(NA, length(names))
-    for (i in 1 : length(seg.list.niveau)) niveau.density[seg.list.niveau[[i]]] <- graph.density(net.edge - which(((1:vcount(net.edge) %in% seg.list.niveau[[i]]) == FALSE)))
+    level.density     <- rep(NA, length(names))
+    for (i in 1 : length(seg.list.level)) level.density[seg.list.level[[i]]] <- graph.density(net.edge - which(((1:vcount(net.edge) %in% seg.list.level[[i]]) == FALSE)))
     # Nodes
     nodes              <- rep(NA, length(names))
-    for (i in 1 : length(seg.list.niveau)) nodes[seg.list.niveau[[i]]] <- length(seg.list.niveau[[i]])
+    for (i in 1 : length(seg.list.level)) nodes[seg.list.level[[i]]] <- length(seg.list.level[[i]])
     # Max path length
     max.path           <- rep(NA, length(names))
-    for (i in 1 : length(seg.list.niveau)) max.path[seg.list.niveau[[i]]] <- diameter(net.edge - which(((1:vcount(net.edge) %in% seg.list.niveau[[i]]) == FALSE)), weights = NA)
+    for (i in 1 : length(seg.list.level)) max.path[seg.list.level[[i]]] <- diameter(net.edge - which(((1:vcount(net.edge) %in% seg.list.level[[i]]) == FALSE)), weights = NA)
     
     # Share of total size
     share.of.total     <- rep(NA, length(names))
-    for (i in 1 : length(seg.list.niveau)) share.of.total[seg.list.niveau[[i]]] <- (totals.niveau / sum(totals.niveau))[i]
+    for (i in 1 : length(seg.list.level)) share.of.total[seg.list.level[[i]]] <- (totals.level / sum(totals.level))[i]
     
-    out.frame             <- data.frame(Segment = seg, within.mobility = quality, share.of.mobility = size, Density = niveau.density, Nodes = nodes, Max.path = max.path, share.of.total = round(share.of.total, 3))
-    colnames(out.frame)   <- paste(niveau, ": ", colnames(out.frame), sep = "") 
+    out.frame             <- data.frame(Segment = seg, within.mobility = quality, share.of.mobility = size, Density = level.density, Nodes = nodes, Max.path = max.path, share.of.total = round(share.of.total, 3))
+    colnames(out.frame)   <- paste(level, ": ", colnames(out.frame), sep = "") 
     out.frame
     
   }
   
-  qual.list          <- lapply(1:number.of.levels, segment.qual.onelevel, segmenter = segmenter)
+  qual.list          <- lapply(1:number.of.levels, segment.qual.onelevel, segments = segments)
   out.mat            <- do.call(cbind , qual.list)
-  out.mat            <- cbind(Membership = segment.membership(segmenter)[,2], out.mat)
+  out.mat            <- cbind(Membership = segment.membership(segments)[,2], out.mat)
   rownames(out.mat)  <- rownames(mat)
   order.mat          <- out.mat[, grep("share.of.total", colnames(out.mat))]
   order.mat          <- order.mat[, ncol(order.mat) : 1]
@@ -278,14 +277,14 @@ segment.quality <- function(segmenter, final.solution = FALSE){
 #' 
 #' @export
 
-first.level.summary <- function(segmenter, small.cell.reduction=segmenter$small.cell.reduction){
+first.level.summary <- function(segments, small.cell.reduction=segments$small.cell.reduction){
 
-n.1.edges      <- vector(length=length(segmenter$segment.list))
+n.1.edges      <- vector(length=length(segments$segment.list))
 sum.1          <- list()
 
-for (i in seq(segmenter$segment.list)){
-  # Antal 1.niveaus edges pr. niveau
-  seg               <- segment.edges(segmenter, niveau=seq(segmenter$segment.list), segment.reduction=1:i, diagonal=NULL)
+for (i in seq(segments$segment.list)){
+  # Antal 1.levels edges pr. level
+  seg               <- segment.edges(segments, level=seq(segments$segment.list), segment.reduction=1:i, diagonal=NULL)
   n.1.edges[i]      <- sum(seg>0)
   sum.1[[i]]        <- summary(seg[seg>0])
 }
@@ -295,21 +294,21 @@ sum.1     # Summary of degrees on each level
 
 
 ###### Longest path and density
-m        <- weight.matrix(segmenter$mat.list[[1]], cut.off=1, small.cell.reduction=small.cell.reduction, symmetric=FALSE)
+m        <- weight.matrix(segments$mat.list[[1]], cut.off=1, small.cell.reduction=small.cell.reduction, symmetric=FALSE)
 m[is.na(m)] <- 0
 net.path <- graph.adjacency(m, mode="directed", weighted=TRUE, diag=NULL)
 sp       <- shortest.paths(net.path, weights=NA)
 
 des <- list()
-for(niv in 2:length(segmenter$segment.list)){
-  max.path.global <- vector(length=length(segmenter$segment.list[[niv]]))
-  clust         <- vector(length=length(segmenter$segment.list[[niv]]))
-  max.clust     <- vector(length=length(segmenter$segment.list[[niv]]))
-  density       <- vector(length=length(segmenter$segment.list[[niv]]))
-  size          <- vector(length=length(segmenter$segment.list[[niv]]))
-  seg.niv       <- segmenter$segment.list[[niv]]
-  max.path      <- vector(length=length(segmenter$segment.list[[niv]]))
-  av.path       <- vector(length=length(segmenter$segment.list[[niv]]))
+for(niv in 2:length(segments$segment.list)){
+  max.path.global <- vector(length=length(segments$segment.list[[niv]]))
+  clust         <- vector(length=length(segments$segment.list[[niv]]))
+  max.clust     <- vector(length=length(segments$segment.list[[niv]]))
+  density       <- vector(length=length(segments$segment.list[[niv]]))
+  size          <- vector(length=length(segments$segment.list[[niv]]))
+  seg.niv       <- segments$segment.list[[niv]]
+  max.path      <- vector(length=length(segments$segment.list[[niv]]))
+  av.path       <- vector(length=length(segments$segment.list[[niv]]))
   for (i in 1:length(seg.niv)){
     seg          <- seg.niv[[i]]
     max.path.global[i] <- max(sp[seg,seg])
@@ -328,18 +327,18 @@ for(niv in 2:length(segmenter$segment.list)){
 ###################################################
 ### Amount of mobility left in 1. level edges on subsequent levels
 
-mx                 <- segmenter$mat.list[[1]]
+mx                 <- segments$mat.list[[1]]
 l                  <- ncol(mx)
 mx.s               <- mx[-l,-l]
-m                  <- weight.matrix(segmenter$mat.list[[1]], cut.off=1, small.cell.reduction=small.cell.reduction, symmetric=FALSE, diagonal=TRUE)
+m                  <- weight.matrix(segments$mat.list[[1]], cut.off=1, small.cell.reduction=small.cell.reduction, symmetric=FALSE, diagonal=TRUE)
 mx.share           <- mx.s/sum(mx.s)
 mx.share[is.na(m)] <- 0
 
 
-segment.list      <- segmenter$segment.list
-share             <- vector(length=length(segmenter$segment.list))
+segment.list      <- segments$segment.list
+share             <- vector(length=length(segments$segment.list))
 
-for (niv in seq(segmenter$segment.list)){
+for (niv in seq(segments$segment.list)){
 seg.niv           <- segment.list[[niv]]
 for (segment in 1:length(seg.niv)){
 seg               <- seg.niv[[segment]]

@@ -4,7 +4,7 @@
 \alias{vertex.mobility}
 \title{Vertex mobility}
 \usage{
-vertex.mobility(segmenter)
+vertex.mobility(segments)
 }
 \description{
 Vertex mobility

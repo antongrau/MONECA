@@ -4,7 +4,7 @@
 \alias{ego.plot}
 \title{Ego plots}
 \usage{
-ego.plot(segmenter, mxa.b, id = 1, lay = layout.matrix(segmenter),
+ego.plot(segments, mxa.b, id = 1, lay = layout.matrix(segments),
   edge.size = 0.8, border.padding = 1, title.line = TRUE,
   vertex.size = "totals", small.cell.reduction = 5,
   edge.weight = "discrete", color.scheme = "RdPu", ...)

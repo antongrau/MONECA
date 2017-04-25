@@ -8,4 +8,10 @@
 \description{
 Mobility Network Clustering Algorithm
 }
+\examples{
+data(occupations)
+seg      <- moneca(mob.mat)
+seg
+
+}
 

@@ -1,11 +1,11 @@
 ###################################
 
-#' Jonas
+#' find.segments
 #' 
-#' An algorithm for creating discrete groups on the basis of a weighted network and a mobility table
+#' An algorithm for creating discrete groups or segments on the basis of a weighted network and a mobility table
 #' 
-#' @param mat is the mobility table with row and column margins XXXX Er det her sandt? Eller spiser den en relative risk matrice? .
-#' @param kliker is a list of cliques
+#' @param mat is the mobility table with row and column margins
+#' @param cliques is a list of cliques
 #' @param cut.off is the minimum weight or relative risk accepted as a network tie
 #' @param mode defines whether mat is symmetric. If mode is "Mutual" - ties are only created for mutual relations. If mode is "Unmutual", relations are not required to be mutual to result in a tie.
 #' @param delete.upper.tri defines whether the upper triangle of the matrix is to be deleted. This results in speed gains.
@@ -13,7 +13,7 @@
 #' @return cliques a list of row indices for each clique
 #' @export
 
-jonas <- function(mat, kliker, cut.off=1, mode="symmetric", delete.upper.tri=TRUE){
+find.segments <- function(mat, cliques, cut.off = 1, mode = "symmetric", delete.upper.tri = TRUE){
   
   ##################
   # Matrice modificering
@@ -41,10 +41,10 @@ jonas <- function(mat, kliker, cut.off=1, mode="symmetric", delete.upper.tri=TRU
   
   ############################
   # Her defineres hjælpefunktionen
-  bejler.test           <- function(kliker, potentiel.klike){
-    klike.match         <- vector(length=length(kliker))
-    for (j in 1:length(kliker)){
-      kl                <- kliker[[j]]
+  bejler.test           <- function(cliques, potentiel.klike){
+    klike.match         <- vector(length=length(cliques))
+    for (j in 1:length(cliques)){
+      kl                <- cliques[[j]]
       klike.match[[j]]  <- all(potentiel.klike %in% kl)
     }
     any(klike.match)
@@ -78,10 +78,10 @@ jonas <- function(mat, kliker, cut.off=1, mode="symmetric", delete.upper.tri=TRU
       gruppe.stoerrelse <- table(gruppe[gruppe.medlemmer])       # Her findes den største af grupperne
       gruppe.tildeles  <- as.numeric(names(gruppe.stoerrelse))[which.max(gruppe.stoerrelse)[1]]        # Her skal den finde den største af grupperne - Den tager det første element - så hvis der er to der er lige store så vælger den "tilfældigt" den største - som også vil være den mest cohesive???
       
-      #### Test kliker
+      #### Test cliques
       potentiel.klike  <- unique(sort(c(gruppe.medlemmer, bejler)))
       
-      test <- bejler.test(kliker, potentiel.klike)              # Her tester vi om den potentielle kliker er en faktisk klike
+      test <- bejler.test(cliques, potentiel.klike)              # Her tester vi om den potentielle cliques er en faktisk klike
       if (test==TRUE){
         gruppe[potentiel.klike] <- gruppe.tildeles             
       }
@@ -92,10 +92,10 @@ jonas <- function(mat, kliker, cut.off=1, mode="symmetric", delete.upper.tri=TRU
   g <- as.factor(gruppe) 
   levels(g) <- 1:nlevels(g)
   
-  # Her laver vi de nye kliker
+  # Her laver vi de nye cliques
   l        <- levels(g)
   ud.list  <- list()
-  for ( i in 1:length(l)) ud.list[[i]]<- which(g == l[i])
+  for ( i in 1:length(l)) ud.list[[i]] <- which(g == l[i])
   
   out <- list()
   out$membership   <- g
@@ -103,11 +103,8 @@ jonas <- function(mat, kliker, cut.off=1, mode="symmetric", delete.upper.tri=TRU
   return(out)
 }
 
-#' Anton
+#' moneca
 #'
-#' Creating nested segments using the \link{jonas} function.
-#'
-#' The anton function is the function that controls Jonas and makes it do all the hard work. 
 #' @param mx is a raw mobility table with row and column margins
 #' @param segment.levels defines the number levels of nested segments to be returned
 #' @param cut.off is the minimum weight or relative risk accepted as a network tie
@@ -115,14 +112,14 @@ jonas <- function(mat, kliker, cut.off=1, mode="symmetric", delete.upper.tri=TRU
 #' @param delete.upper.tri defines whether the upper triangle of the matrix is to be deleted. This results in speed gains.
 #' @return segment.list returns a list of cliques for each level. The row indices correspond to the first level aka. the rows from mx.
 #' @return mat.list returns a list with a mobility table for each level with the number of rows and columns corresponding to the number of segments for each level
-#' @seealso \link{jonas}, \link{jonas.plot}
+#' @seealso \link{find.segments}, \link{moneca.plot}
 #' @export
 
-anton <- function(mx=mx, segment.levels=3, cut.off=1, mode="symmetric", delete.upper.tri=TRUE, small.cell.reduction=0){
+moneca <- function(mx=mx, segment.levels=3, cut.off=1, mode="symmetric", delete.upper.tri=TRUE, small.cell.reduction=0){
   
-  # Find segmenterne på baggrund af en matrice
-  # Det er her jonas options skal angives  
-  find.segments   <- function(mx, cut.off=1, mode=mode, delete.upper.tri=delete.upper.tri, small.cell.reduction=small.cell.reduction){
+  # Find segmentsne på baggrund af en matrice
+  # Det er her find.segments options skal angives  
+  make.segments   <- function(mx, cut.off=1, mode=mode, delete.upper.tri=delete.upper.tri, small.cell.reduction=small.cell.reduction){
     
 #     l               <- nrow(mx)
 #     mx.1_exp        <- as.array(mx[,l]) %*% t(as.array(mx[l,]) / mx[l,l])
@@ -137,7 +134,7 @@ anton <- function(mx=mx, segment.levels=3, cut.off=1, mode="symmetric", delete.u
     
     gra.1ii         <- graph.adjacency(adjmatrix=mx.1i, mode="undirected")
     klike           <- cliques(gra.1ii)
-    clust.1         <- jonas(mx.1i, klike, cut.off=cut.off)
+    clust.1         <- find.segments(mx.1i, klike, cut.off=cut.off)
     
     return(clust.1)
   }
@@ -196,29 +193,31 @@ anton <- function(mx=mx, segment.levels=3, cut.off=1, mode="symmetric", delete.u
   }
   
   
-  # Her finder vi segmenterne
+  # Her finder vi segmentsne
   mat.list        <- list()
   mat.list[[1]]   <- mx
-  segments        <- find.segments(mx, cut.off=cut.off, mode=mode, delete.upper.tri=delete.upper.tri, small.cell.reduction=small.cell.reduction)
+  segments        <- make.segments(mx, cut.off=cut.off, mode=mode, delete.upper.tri=delete.upper.tri, small.cell.reduction=small.cell.reduction)
   mx.2g           <- segment.matrix(mx, segments)
   mat.list[[2]]   <- mx.2g
   out.put         <- list()
   out.put[[1]]    <- list(segments=segments, mat=mx.2g)
   
   for (i in 2:segment.levels){
-    segments        <- find.segments(mx.2g, cut.off=cut.off, mode=mode, delete.upper.tri=delete.upper.tri, small.cell.reduction=small.cell.reduction)
+    segments        <- make.segments(mx.2g, cut.off=cut.off, mode=mode, delete.upper.tri=delete.upper.tri, small.cell.reduction=small.cell.reduction)
     mx.2g           <- segment.matrix(mx.2g, segments)
     mat.list[[i+1]] <- mx.2g
     out.put[[i]]    <- list(segments=segments, mat=mx.2g)
   }
   
   
-  # Her laves segmenterne
+  # Her laves segmentsne
   segment.list    <- create.segments(out.put, mx)
   
   # Her laves output
   
   out <- list(segment.list=segment.list, mat.list=mat.list, small.cell.reduction=small.cell.reduction)
+  
+  class(out) <- "moneca"
   
   return(out)
 }
@@ -226,7 +225,7 @@ anton <- function(mx=mx, segment.levels=3, cut.off=1, mode="symmetric", delete.u
 #############################################
 #' Weight.matrix
 #' 
-#' Creates a matrix of weights for the jonas function.
+#' Creates a matrix of weights for the \link{find.segments} function.
 #' @param mx 
 #' @param cut.off is the minimum weight allowed for a tie between nodes
 #' @param symmetric defines whether the matrix is forced into symmetry
@@ -268,17 +267,17 @@ weight.matrix <- function(mx, cut.off = 1, symmetric = TRUE, diagonal = NULL, sm
 #' 
 #' Creates a grey scale for the segments
 #' 
-#' @param segmenter
+#' @param segments
 #' @export
 
-segment.colors <- function(segmenter){
-  n.segments <- length(segmenter$segment.list)
+segment.colors <- function(segments){
+  n.segments <- length(segments$segment.list)
   
   
-  segment.grey  <- function(segmenter, niveau){
+  segment.grey  <- function(segments, level){
     
-    mat               <- segmenter$mat.list[[niveau]]
-    l.seg             <- length(segmenter$segment.list[[niveau]])
+    mat               <- segments$mat.list[[level]]
+    l.seg             <- length(segments$segment.list[[level]])
     diag.mat          <- diag(mat)[-nrow(mat)]
     row.mat           <- mat[-nrow(mat), nrow(mat)]
     value             <- round((1-diag.mat/row.mat)*100)
@@ -287,9 +286,9 @@ segment.colors <- function(segmenter){
   }
   
   colors <- list() 
-  for (i in 1:n.segments) colors[[i]] <- segment.grey(segmenter, i)
+  for (i in 1:n.segments) colors[[i]] <- segment.grey(segments, i)
   
-  groups <- unlist(lapply(segmenter$segment.list, length))
+  groups <- unlist(lapply(segments$segment.list, length))
   
   for ( i in 1:length(groups)) colors[[i]]  <-  colors[[i]][1:groups[i]]
   
@@ -303,27 +302,27 @@ segment.colors <- function(segmenter){
 #' Layout matrix
 #' 
 #' A matrix with the coordinates of the segments
-#' @param segmenter a segment object
+#' @param segments a segment object
 #' @param attraction the distance between the segment points for each level.
 #' @param area.size the size of the plot area - see \link{layout.fruchterman.reingold}
-#' @param niveau the included levels
+#' @param level the included levels
 #' @param mode the mode
 #' @export
 # old attraction attraction=c(200, 100, 15, 5, 3)
-layout.matrix <- function(segmenter, attraction=c(320, 40, 10, 4, 2), niveau=seq(segmenter$segment.list), mode = "directed", weight.adjustment = 1, start.temp = 20, niter = 10000, tie.adjustment = 0.4, ...){
+layout.matrix <- function(segments, attraction=c(320, 40, 10, 4, 2), level=seq(segments$segment.list), mode = "directed", weight.adjustment = 1, start.temp = 20, niter = 10000, tie.adjustment = 0.4, ...){
   
-  seg              <- segmenter
-  seg$segment.list <- segmenter$segment.list[niveau]
-  seg$mat.list     <- segmenter$mat.list[niveau]
+  seg              <- segments
+  seg$segment.list <- segments$segment.list[level]
+  seg$mat.list     <- segments$mat.list[level]
   
-#   mx              <- segmenter$mat.list[[1]]
+#   mx              <- segments$mat.list[[1]]
 #   l               <- nrow(mx)
 #   mx.1_exp        <- as.array(mx[,l]) %*% t(as.array(mx[l,]) / mx[l,l])
 #   mx.1_net        <- mx/mx.1_exp
 #   mx.1            <- mx.1_net[-l,-l]
 #   mx.attract      <- mx.1
 #   
-  mx.attract      <- weight.matrix(segmenter$mat.list[[1]], cut.off = 0, diagonal=TRUE, symmetric=FALSE)
+  mx.attract      <- weight.matrix(segments$mat.list[[1]], cut.off = 0, diagonal=TRUE, symmetric=FALSE)
   mx.attract      <- mx.attract ^ tie.adjustment
   
   gra.lay         <- graph.adjacency(mx.attract, mode="directed", weighted=TRUE, diag=NULL)
@@ -342,7 +341,7 @@ layout.matrix <- function(segmenter, attraction=c(320, 40, 10, 4, 2), niveau=seq
   diag(mx.attract) <- 0
   gra.lay          <- graph.adjacency(mx.attract, mode=mode, weighted=TRUE, diag=NULL)
 
-  # wm               <- weight.matrix(segmenter)
+  # wm               <- weight.matrix(segments)
   # a                <- rowSums(wm)
   # b                <- colSums(wm)
   # start            <- cbind(max(a) - a, max(b)- b)
@@ -357,12 +356,12 @@ layout.matrix <- function(segmenter, attraction=c(320, 40, 10, 4, 2), niveau=seq
 #' 
 #' The coordinates of the edges
 #' @export
-segment.edges <- function(segmenter, cut.off=1, mode="directed", niveau=seq(segmenter$segment.list), segment.reduction=seq(segmenter$segment.list), method="all", top=3, diagonal=NULL, small.cell.reduction=0){
+segment.edges <- function(segments, cut.off=1, mode="directed", level=seq(segments$segment.list), segment.reduction=seq(segments$segment.list), method="all", top=3, diagonal=NULL, small.cell.reduction=0){
   
-  mx                     <- segmenter$mat.list[[1]]
-  seg                    <- segmenter
-  seg$segment.list <- segmenter$segment.list[niveau]
-  seg$mat.list     <- segmenter$mat.list[niveau]
+  mx                     <- segments$mat.list[[1]]
+  seg                    <- segments
+  seg$segment.list <- segments$segment.list[level]
+  seg$mat.list     <- segments$mat.list[level]
   
 #   
 #   l               <- nrow(mx)
@@ -416,16 +415,16 @@ segment.edges <- function(segmenter, cut.off=1, mode="directed", niveau=seq(segm
 }
 
 
-#' Plot Jonas
+#' Plot moneca
 #' 
-#' Plot the results from a Jonas analysis
+#' Plot the results from a moneca analysis
 #' @export
 
-jonas.plot <- function(segmenter,
-                       layout             = layout.matrix(segmenter),
-                       edges              = segment.edges(segmenter),
+moneca.plot <- function(segments,
+                       layout             = layout.matrix(segments),
+                       edges              = segment.edges(segments),
                        mode               = "directed",
-                       niveau             = seq(segmenter$segment.list),
+                       level             = seq(segments$segment.list),
                        vertex.size        = 5,
                        vertex.frame.color = "black",
                        edge.curved        = FALSE,
@@ -440,10 +439,10 @@ jonas.plot <- function(segmenter,
                        edge.width      = 1,
                        edge.color      = "black"){
   
-  niveau                 <- niveau[niveau != 1]
-  seg                    <- segmenter
-  seg$segment.list       <- segmenter$segment.list[niveau]
-  seg$mat.list           <- segmenter$mat.list[niveau]
+  level                 <- level[level != 1]
+  seg                    <- segments
+  seg$segment.list       <- segments$segment.list[level]
+  seg$mat.list           <- segments$mat.list[level]
   segments               <- unlist(seg$segment.list, recursive=FALSE)
   
   mat.edges              <- edges
@@ -472,14 +471,14 @@ jonas.plot <- function(segmenter,
 #' A dataframe with the segment membership for each category
 #' @export
 
-segment.membership <- function(segmenter, niveau=seq(segmenter$segment.list)){
+segment.membership <- function(segments, level=seq(segments$segment.list)){
 
-org.name <- rownames(segmenter$mat.list[[1]])
+org.name <- rownames(segments$mat.list[[1]])
 org.name <- org.name[-length(org.name)]
 
 position <- vector(length=length(org.name))
-for (niv in niveau){
-seg.niv <- segmenter$segment.list[[niv]]
+for (niv in level){
+seg.niv <- segments$segment.list[[niv]]
 for (i in 1:length(seg.niv)){
 position[seg.niv[[i]]] <- rep(paste(niv, i, sep="."), length(seg.niv[[i]]))
 }
@@ -490,9 +489,9 @@ out.mat
 }  
 #   out <- list()
 #   
-#   for (i in niveau){
-#   niv     <- niveau[i]
-#   seg     <- segmenter$segment.list[[niv]]
+#   for (i in level){
+#   niv     <- level[i]
+#   seg     <- segments$segment.list[[niv]]
 #   node    <- unlist(seg)
 #   l       <- 1:length(seg)
 # 
@@ -508,26 +507,26 @@ out.mat
 # }
 #   
 
-#' Christoph
+#' force.segments
 #' 
-#' Create a two-level segment-object with a forced solution
+#' Create a two-level segment-object with a forced solutionz
 #' 
 #' @export
 
-christoph <-function(segmenter, variable){
+force.segments <-function(segments, variable){
 
 new.seg                       <- list()
 new.seg$segment.list          <- list()
 new.seg$mat.list              <- list()
-new.seg$small.cell.reduction  <- segmenter$small.cell.reduction
+new.seg$small.cell.reduction  <- segments$small.cell.reduction
 
-# Første niveau
+# Første level
 
-new.seg$segment.list[[1]]  <- segmenter$segment.list[[1]]
-new.seg$mat.list[[1]]      <- segmenter$mat.list[[1]]
-mxa                        <- segmenter$mat.list[[1]]
+new.seg$segment.list[[1]]  <- segments$segment.list[[1]]
+new.seg$mat.list[[1]]      <- segments$mat.list[[1]]
+mxa                        <- segments$mat.list[[1]]
 
-# Andet niveau
+# Andet level
 out.list <- list()
 for(i in 1:nlevels(as.factor(variable))){
   var <- as.factor(variable)

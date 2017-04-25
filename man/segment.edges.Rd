@@ -4,10 +4,10 @@
 \alias{segment.edges}
 \title{Segment edges}
 \usage{
-segment.edges(segmenter, cut.off = 1, mode = "directed",
-  niveau = seq(segmenter$segment.list),
-  segment.reduction = seq(segmenter$segment.list), method = "all",
-  top = 3, diagonal = NULL, small.cell.reduction = 0)
+segment.edges(segments, cut.off = 1, mode = "directed",
+  level = seq(segments$segment.list),
+  segment.reduction = seq(segments$segment.list), method = "all", top = 3,
+  diagonal = NULL, small.cell.reduction = 0)
 }
 \description{
 The coordinates of the edges

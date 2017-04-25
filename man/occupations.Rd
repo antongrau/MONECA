@@ -7,4 +7,9 @@
 \description{
 Occupational mobility
 }
+\examples{
+data(occupations)
+
+
+}
 
