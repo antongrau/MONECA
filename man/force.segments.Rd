@@ -9,4 +9,3 @@ force.segments(segments, variable)
 \description{
 Create a two-level segment-object with a forced solutionz
 }
-

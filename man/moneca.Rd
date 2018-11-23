@@ -29,4 +29,3 @@ moneca
 \seealso{
 \link{find.segments}, \link{moneca.plot}
 }
-

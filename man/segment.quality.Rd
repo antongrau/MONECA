@@ -9,4 +9,3 @@ segment.quality(segments, final.solution = FALSE)
 \description{
 Segment quality
 }
-

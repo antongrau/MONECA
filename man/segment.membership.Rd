@@ -9,4 +9,3 @@ segment.membership(segments, level = seq(segments$segment.list))
 \description{
 A dataframe with the segment membership for each category
 }
-

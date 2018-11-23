@@ -12,4 +12,3 @@ segment.edges(segments, cut.off = 1, mode = "directed",
 \description{
 The coordinates of the edges
 }
-

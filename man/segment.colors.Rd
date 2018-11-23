@@ -9,4 +9,3 @@ segment.colors(segments)
 \description{
 Creates a grey scale for the segments
 }
-

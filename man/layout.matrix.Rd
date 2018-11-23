@@ -23,4 +23,3 @@ layout.matrix(segments, attraction = c(320, 40, 10, 4, 2),
 \description{
 A matrix with the coordinates of the segments
 }
-

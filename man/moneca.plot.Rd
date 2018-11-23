@@ -16,4 +16,3 @@ moneca.plot(segments, layout = layout.matrix(segments),
 \description{
 Plot the results from a moneca analysis
 }
-

@@ -21,4 +21,3 @@ Plots of the connections and movements from a single node
 data(occupations)
 ego.plot(mob.seg, mob.mat, id = 2)
 }
-

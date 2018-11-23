@@ -14,4 +14,3 @@ seg      <- moneca(mob.mat)
 seg
 
 }
-

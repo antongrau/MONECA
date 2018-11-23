@@ -20,4 +20,3 @@ a matrix of relative risks
 \description{
 Creates a matrix of weights for the \link{find.segments} function.
 }
-

@@ -31,4 +31,3 @@ Plots the change in segmentation for each level in a MONECA analysis
 data(occupations)
 stair.plot(mob.seg)[[2]]
 }
-

@@ -10,4 +10,3 @@ first.level.summary(segments,
 \description{
 First level summary
 }
-

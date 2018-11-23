@@ -27,4 +27,3 @@ Plotting of MONECA objects
 data(occupations)
 gg.moneca(mob.seg)
 }
-

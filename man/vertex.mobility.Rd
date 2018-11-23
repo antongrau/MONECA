@@ -9,4 +9,3 @@ vertex.mobility(segments)
 \description{
 Vertex mobility
 }
-

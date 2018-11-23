@@ -26,4 +26,3 @@ cliques a list of row indices for each clique
 \description{
 An algorithm for creating discrete groups or segments on the basis of a weighted network and a mobility table
 }
-

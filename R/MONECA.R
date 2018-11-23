@@ -13,6 +13,7 @@
 #' @import grid
 #' @import RColorBrewer
 #' @import scales
-#' @import soc.elite
 #' @import toOrdinal
 NULL
+
+# @import soc.elite
