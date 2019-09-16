@@ -153,12 +153,12 @@ level                 <- level[level != 1]
 seg                    <- segments
 seg$segment.list       <- segments$segment.list[level]
 seg$mat.list           <- segments$mat.list[level]
-segments               <- unlist(seg$segment.list, recursive=FALSE)
+#segments               <- unlist(seg$segment.list, recursive=FALSE) # Det her er knald sort! Den bliver ikke brugt i sin unlistede form
 
 
 
 mat.edges              <- edges
-gra.edges              <- graph.adjacency(mat.edges, mode=mode, weighted=TRUE, diag=NULL)                     
+gra.edges              <- graph.adjacency(mat.edges, mode=mode, weighted=TRUE, diag = FALSE)                     
 
 scale_modifications    <- list()
 
@@ -189,7 +189,7 @@ if(identical(vertex.size, "col.total")){
 } 
 
 
-p                      <- graph.plot(gra.edges, layout=as.matrix(layout[, 1:2]),
+p                      <- eliter::graph.plot(gra.edges, layout=as.matrix(layout[, 1:2]),
                           vertex.color = vertex.color, vertex.fill = vertex.fill, vertex.shape = vertex.shape,
                           vertex.size = vertex.size, vertex.alpha = vertex.alpha,
                           edges = show.edges, edge.color = edge.color, edge.alpha = edge.alpha,
@@ -249,7 +249,10 @@ if(identical(border.text, TRUE) & length(level) > 0){
   
   p                        <- p + list.annotate
   
+  
+  # Annotate singles
   tab.mem                  <- table(layout$Membership)
+  if(any(tab.mem == 1)){
   singles.layout           <- layout[layout$Membership %in% names(tab.mem)[tab.mem == 1],]
   singles.layout           <- data.frame(x = singles.layout$X, y = singles.layout$Y, group = runif(1, min = 0, max = 999999999), membership = singles.layout$Membership)
   singles.layout$y         <- singles.layout$y + (border.padding.diameter * 0.25)
@@ -260,6 +263,8 @@ if(identical(border.text, TRUE) & length(level) > 0){
                                    annotate(geom = "segment", x = singles.layout$x, xend = singles.layout$xend , y = singles.layout$y, yend = singles.layout$y, color = border.color, alpha = border.alpha))
   
   p                        <- p + list.annotate
+  }
+  
 }
 
 

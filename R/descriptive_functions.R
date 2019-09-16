@@ -43,9 +43,9 @@ print.moneca <- function(segments, small.cell.reduction=segments$small.cell.redu
   # Brug weight matrix istedet  
     mx.1 <- weight.matrix(mx, cut.off=1, small.cell.reduction=small.cell.reduction, symmetric=FALSE)
     mx.1[is.na(mx.1)]  <- 0   
-    gra.diag.null <- graph.adjacency(mx.1, weighted=TRUE, mode="directed", diag=NULL)
+    gra.diag.null <- graph.adjacency(mx.1, weighted=TRUE, mode="directed", diag = FALSE)
     gra.diag.true <- graph.adjacency(mx.1, weighted=TRUE, mode="directed")
-    gra.diag.null <- simplify(gra.diag.null, remove.loops=TRUE, remove.multiple=FALSE)
+    gra.diag.null <- simplify(gra.diag.null, remove.loops=TRUE, remove.multiple = FALSE)
     
     deg.all                <- degree(gra.diag.null, mode="all")
     deg.out                <- degree(gra.diag.null, mode="out")
@@ -296,7 +296,7 @@ sum.1     # Summary of degrees on each level
 ###### Longest path and density
 m        <- weight.matrix(segments$mat.list[[1]], cut.off=1, small.cell.reduction=small.cell.reduction, symmetric=FALSE)
 m[is.na(m)] <- 0
-net.path <- graph.adjacency(m, mode="directed", weighted=TRUE, diag=NULL)
+net.path <- graph.adjacency(m, mode="directed", weighted=TRUE, diag=FALSE) # Her er diag = NULL erstattet med FALSE
 sp       <- shortest.paths(net.path, weights=NA)
 
 des <- list()

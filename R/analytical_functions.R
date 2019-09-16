@@ -325,7 +325,7 @@ layout.matrix <- function(segments, attraction=c(320, 40, 10, 4, 2), level=seq(s
   mx.attract      <- weight.matrix(segments$mat.list[[1]], cut.off = 0, diagonal=TRUE, symmetric=FALSE)
   mx.attract      <- mx.attract ^ tie.adjustment
   
-  gra.lay         <- graph.adjacency(mx.attract, mode="directed", weighted=TRUE, diag=NULL)
+  gra.lay         <- graph.adjacency(mx.attract, mode="directed", weighted=TRUE)
   
   
   assign.attraction <- function(mx.attract, segment, attract){
@@ -339,7 +339,7 @@ layout.matrix <- function(segments, attraction=c(320, 40, 10, 4, 2), level=seq(s
   }
   
   diag(mx.attract) <- 0
-  gra.lay          <- graph.adjacency(mx.attract, mode=mode, weighted=TRUE, diag=NULL)
+  gra.lay          <- graph.adjacency(mx.attract, mode=mode, weighted=TRUE)
 
   # wm               <- weight.matrix(segments)
   # a                <- rowSums(wm)
@@ -446,7 +446,7 @@ moneca.plot <- function(segments,
   segments               <- unlist(seg$segment.list, recursive=FALSE)
   
   mat.edges              <- edges
-  gra.edges              <- graph.adjacency(mat.edges, mode=mode, weighted=TRUE, diag=NULL)                     
+  gra.edges              <- graph.adjacency(mat.edges, mode = mode, weighted = TRUE, diag = FALSE)                     
   el                     <- get.edgelist(gra.edges, names=FALSE)
   # Edge colors
   if(is.matrix(edge.color) == TRUE){
